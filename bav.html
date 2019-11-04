@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>From</title>
+    <script src="./p.js"></script>
+    <link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+    <h1></h1>
+    <div></div>
+    <div>
+        <div class="flex">
+            <template id="streamer">
+                <div class="view">
+                    <div class="uname">[[USER]]</div>
+                    <video height="200" width="200" autoplay></video>
+                    <div class="options">options</div>
+                </div>
+            </template>
+        </div>
+        <div id="add">Add</div>
+    </div>
+    <script src="./p.js"></script>
+    <script>
+        try {
+            const id = Math.floor(Math.random() * 100) + 1;
+            document.querySelector("h1").innerText = id;
+            var ipg = "gpch.herokuapp.com";
+            var stream = undefined;
+
+            var cl = [];
+            var peer = new Peer(id,
+                {
+                    host: ipg, path: '/myapp', secure: true
+                });
+
+            peer.on('open', function (id) { console.log('My peer ID is:' + id) });
+            var url = "wss://brodcsta.herokuapp.com";
+            // url = "wss://" + ipg + ":9091";
+            var ws = new WebSocket(url);
+            ws.onmessage = function (m, e) {
+                var l = JSON.parse(m.data)._CL;
+                console.log(m, e);
+                if (l) {
+                    document.querySelector("div").innerText = JSON.stringify(l);
+
+                    for (const _key in l) {
+                        let key = l[_key];
+                        console.log(key);
+
+                        if (document.getElementById("V" + key) == null) {
+                            console.log("calling" + key);
+                            placecall(key);
+                        }
+                        //document.querySelector("div").innerText = JSON.stringify(cl);
+                    }
+                    //cl = cl.concat(l.filter(t => cl.findIndex(g => g === t) == -1 && t != id));
+                    //document.querySelector("div").innerText = JSON.stringify(cl);
+                    //cl.forEach(v => placecall(v));
+                }
+            }
+            peer.on('MSG', function (id) { console.log('wwwwwwww:' + id) });
+
+            navigator.getUserMedia(
+                {
+                    video:
+                    {
+                        height: 100, width: 100, facingMode: 'user'
+                    }
+                }, (st) => {
+                    stream = st;
+                    add(id, st);
+                    ws.onopen = function () {
+                        ws.send(JSON.stringify({ _CL: [id] }));
+                        console.log("wssc");
+                    }
+
+                }, (e) => {
+                    console.log(e);
+                })
+            function add(n, s) {
+                let r = document.getElementById("V" + n);
+                console.log(r);
+                if (r == null) {
+                    let t = document.getElementById("streamer").content.firstElementChild.cloneNode(true);
+                    t.id = "E" + n;
+                    t.getElementsByClassName("uname")[0].innerText = n;
+                    t.querySelector("video").id = "V" + n;
+                    t.querySelector("video").srcObject = s;
+                    s.oninactive = function (e) {
+                        document.getElementById(t.id).remove();
+                    }
+                    document.getElementsByClassName("flex")[0].append(t);
+                }
+            }
+
+            window.onbeforeunload = () => peer.close();
+            window.onunload = () => peer.close();
+            window.onclose = () => peer.close();
+            function placecall(_id) {
+                call = peer.call(_id, stream);
+                let _call = call;
+                console.log(call);
+                call.on('stream', function (_stream) {
+                    let _id = _call.peer;
+                    var int = undefined;
+                    add(_id, _stream);
+                    int = setInterval(() => {
+                        if (_call.remoteStream) {
+
+                            add(_id, _call.remoteStream);
+                            clearInterval(int);
+
+                        }
+                    }
+                        , 2000);
+                });
+            }
+            peer.on('call', function (_call) {
+                _call.answer(stream);
+                console.log(_call);
+                _call.on('stream', function (_stream) {
+                    let _id = _call.peer;
+                    var int = undefined;
+                    add(_id, _stream);
+                    int = setInterval(() => {
+                        if (_call.remoteStream) {
+
+                            add(_id, _call.remoteStream);
+                            clearInterval(int);
+
+                        }
+                    }
+                        , 2000);
+                });
+            });
+            function boo() {
+                console.log(2222222222222);
+            }
+        } catch (error) {
+            alert(error)
+        }
+    </script>
+    <style>
+        .flex {
+            display: flex;
+            flex-wrap: wrap;
+            background: #222;
+            padding: 0.5rem;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            color: white;
+            font-family: sans-serif;
+            font-size: 16px;
+            background: #222;
+        }
+
+        .view {
+            background: dodgerblue;
+            border-radius: 4px;
+            margin: 5px;
+            padding: 0.3rem;
+            text-align: center;
+        }
+    </style>
+</body>
+
+</html>

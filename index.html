@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Indi</title>
+</head>
+
+<body>
+    <div class="bgg"></div>
+
+    <nav>
+        <div class="navbody">
+            <div id="uimage">
+
+            </div>
+            <div class="desci">
+                <div id="user"></div>
+                <div id="act"></div>
+            </div>
+        </div>
+
+    </nav>
+    <div class="body">
+        <div class="area">
+            <div class="conversation">
+                <div class="talks" id="talks">
+                </div>
+            </div>
+        </div>
+        <div class="inputs">
+            <div class="txt">
+                <input type="text" name="" id="msg">
+            </div>
+            <div id="send">
+                <svg id="Capa_1" x="0px" y="0px" width="535.5px" height="535.5px" viewBox="0 0 535.5 535.5"
+                    style="enable-background:new 0 0 535.5 535.5;" xml:space="preserve">
+                    <g>
+                        <g id="send">
+                            <polygon points="0,497.25 535.5,267.75 0,38.25 0,216.75 382.5,267.75 0,318.75   " />
+                        </g>
+                    </g>
+                </svg>
+            </div>
+        </div>
+    </div>
+    <div id="clone" style="display: none">
+        <div class="comment byy">
+            <div class="comment_body">
+                <div class="from">[[USER]]</div>
+                <div class="text">
+                    <div class="data">[[MSG]]</div>
+                </div>
+                <div class="time time_byy">
+                    [[TIME]]
+                </div>
+            </div>
+        </div>
+        <div class="comment too">
+            <div class="comment_body">
+                <div class="from">[[USER]]</div>
+                <div class="text">
+                    <div class="data">[[MSG]]</div>
+                </div>
+                <div class="transfer_details">
+
+                    <div style=" display: flex;">
+                        <div class="time">Wed, 31 Jul 2019 09:14:13 GMT
+                        </div>
+                        <svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 15" width="16" height="15">
+                            <path fill="#4FC3F7"
+                                d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.064-.512zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.366.366 0 0 0-.515.006l-.423.433a.364.364 0 0 0 .006.514l3.258 3.185c.143.14.361.125.484-.033l6.272-8.048a.365.365 0 0 0-.063-.51z">
+                            </path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script defer>
+        var _host = window.location.hostname;
+        var url = "wss://brodcsta.herokuapp.com";
+        // url = "ws://" + _host + ":9091";
+        var ws = new WebSocket(url);
+        function init() {
+            ws.onopen = function (e) {
+                ws.send(JSON.stringify({ "event": 'GET_USER' }));
+            }
+            ws.onclose = function () {
+                console.log("re init");
+                ws = new WebSocket(url);
+            }
+            ws.onerror = function () {
+
+            }
+            ws.onmessage = function (c) {
+                var pd = (JSON.parse(c.data));
+                switch (pd.event) {
+                    case 'CONNECTED':
+                        document.getElementById("user").innerText = pd.user;
+                        document.getElementById("uimage").style.background = "url(https://api.adorable.io/avatars/" + pd.user + ") no-repeat center center / cover"
+                        break;
+                    case 'SEND_SUCCESS':
+                        var p = document.getElementById("clone").querySelector(".too").cloneNode(true);
+                        p.querySelector(".from").innerHTML = "you";
+                        p.querySelector(".data").innerHTML = pd.data;
+                        p.querySelector(".time").innerHTML = (new Date()).toGMTString();
+                        document.getElementById("msg").value = "";
+
+                        document.getElementById("talks").append(p); sb();
+                        break;
+                    case 'MSG':
+                        var p = document.getElementById("clone").querySelector(".byy").cloneNode(true);
+                        p.querySelector(".from").innerHTML = pd.user;
+                        p.querySelector(".data").innerHTML = pd.data;
+                        p.querySelector(".time").innerHTML = (new Date()).toGMTString();
+                        document.getElementById("talks").append(p);
+                        sb();
+                        break;
+                    case 'ACT_TYPE':
+                        document.getElementById("act").innerHTML = pd.user + pd.data;
+                        break;
+                    case 'USERINFO':
+                        document.getElementById("user").innerText = pd.user;
+                        document.getElementById("uimage").style.background = "url(https://api.adorable.io/avatars/" + pd.user + ") no-repeat center center / cover"
+                        console.log(pd);
+                        break;
+                    case 'ACT_BLUR':
+                        document.getElementById("act").innerHTML = '';
+                        break;
+                    default:
+                        break;
+                }
+            }
+            function sb() {
+                document.querySelector("#talks").scrollTo(0, document.querySelector("#talks").scrollHeight)
+            }
+            document.getElementById("msg").onkeydown = function (e) {
+                if (e.keyCode === 13) {
+                    document.getElementById('send').click();
+                    return;
+                }
+                ws.send(JSON.stringify({ "event": 'ACT_TYPE', data: ' typing' }));
+            }
+            document.getElementById("msg").onkeyup = function () {
+                setTimeout(() => {
+                    ws.send(JSON.stringify({ "event": 'ACT_BLUR', data: '' }));
+                }, 1500);
+            }
+            document.getElementById("send").onclick = function (e) {
+                var msg = document.getElementById("msg").value;
+                if (msg != '') {
+                    ws.send(JSON.stringify({ "event": 'MSG', "data": msg }));
+
+                }
+            }
+        }
+        init();
+    </script>
+    <svg display="none">
+        <symbol width="24" height="24" viewBox="0 0 24 24" id="bell">
+            <path
+                d="M11.5,22C11.64,22 11.77,22 11.9,21.96C12.55,21.82 13.09,21.38 13.34,20.78C13.44,20.54 13.5,20.27 13.5,20H9.5A2,2 0 0,0 11.5,22M18,10.5C18,7.43 15.86,4.86 13,4.18V3.5A1.5,1.5 0 0,0 11.5,2A1.5,1.5 0 0,0 10,3.5V4.18C7.13,4.86 5,7.43 5,10.5V16L3,18V19H20V18L18,16M19.97,10H21.97C21.82,6.79 20.24,3.97 17.85,2.15L16.42,3.58C18.46,5 19.82,7.35 19.97,10M6.58,3.58L5.15,2.15C2.76,3.97 1.18,6.79 1,10H3C3.18,7.35 4.54,5 6.58,3.58Z">
+            </path>
+        </symbol>
+
+        <symbol width="24" height="24" viewBox="0 0 24 24" id="arrow">
+            <path d="M4,11V13H16L10.5,18.5L11.92,19.92L19.84,12L11.92,4.08L10.5,5.5L16,11H4Z"></path>
+        </symbol>
+    </svg>
+    <style>
+        .comment_body {
+            color: #4b4b4b;
+            background: #dcf8c6;
+            width: 50%;
+            padding: 0.6rem;
+            direction: ltr;
+            box-shadow: 2px 2px 20px 0px #22222273;
+            transition: 0.5s;
+            animation: appeat 0.2s linear 1;
+            word-wrap: break-word;
+        }
+
+        .byy>.comment_body {
+            border-radius: 0px 17px 17px 17px;
+        }
+
+        .too>.comment_body {
+            border-radius: 17px 0px 17px 17px;
+
+        }
+
+        .transfer_details {
+            color: #79886d;
+            font-size: 11px;
+            direction: unset;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .comment.byy:after {
+            content: '';
+            position: absolute;
+            height: 20px;
+            width: 20px;
+            top: 0;
+            left: -19px;
+            background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAmCAMAAADp2asXAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAADAUExURUxpcXmHa4maet/4yA0aDRMTE8fhsgAAAAAAAMDXrCsxJeX/z1xzXIiYetPsvGBsVUdPPuH8zOH8zNDrvMvmtrrOpwAAAAAAABUVFRoaGtnyxLTMozQ+MMfftFBeSR8nH5aoh6q/mW9+ZN/4yMjhtRwlHAAAAIOWd+r/06C1kkNLOwsLC9z4xur/0+n/0t76x9v4xeL9y+b/z+j/0d/7yeH8yuX/zeD8ytz5xt76yOP/zeH+y+b/zuD8yd35xuf/0MY9jkkAAAAsdFJOUwBvd/ATDZIBAsMp/At/11c9yPbizHoICQwT4bY1ykkgjahl6s8bBYT6nUAWOLbtFAAAAIhJREFUKM/tzbUWwlAURNFBE9zdg0NecLf//yvKUJyUdDnl7HXXletXqmXl9wPbQ9JCcC+VJsOj2mDwovzj3osjHGNFEVxNRAj7UR1hlx+I4FbuC8HkZBE8OwnRxamdFsEmUxCCGdoI51RLBK9xVwTvjyMEbzlDMJMp7lqseNc8YNc6CGyF/a0vcmwhZbCG+kEAAAAASUVORK5CYII=);
+            transform: rotateY(180deg);
+        }
+
+        .comment.byy {
+            position: relative;
+        }
+
+        @keyframes appeat {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .comment.too:after {
+            content: '';
+            position: absolute;
+            height: 20px;
+            width: 20px;
+            background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAmCAMAAADp2asXAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAADAUExURUxpcXmHa4maet/4yA0aDRMTE8fhsgAAAAAAAMDXrCsxJeX/z1xzXIiYetPsvGBsVUdPPuH8zOH8zNDrvMvmtrrOpwAAAAAAABUVFRoaGtnyxLTMozQ+MMfftFBeSR8nH5aoh6q/mW9+ZN/4yMjhtRwlHAAAAIOWd+r/06C1kkNLOwsLC9z4xur/0+n/0t76x9v4xeL9y+b/z+j/0d/7yeH8yuX/zeD8ytz5xt76yOP/zeH+y+b/zuD8yd35xuf/0MY9jkkAAAAsdFJOUwBvd/ATDZIBAsMp/At/11c9yPbizHoICQwT4bY1ykkgjahl6s8bBYT6nUAWOLbtFAAAAIhJREFUKM/tzbUWwlAURNFBE9zdg0NecLf//yvKUJyUdDnl7HXXletXqmXl9wPbQ9JCcC+VJsOj2mDwovzj3osjHGNFEVxNRAj7UR1hlx+I4FbuC8HkZBE8OwnRxamdFsEmUxCCGdoI51RLBK9xVwTvjyMEbzlDMJMp7lqseNc8YNc6CGyF/a0vcmwhZbCG+kEAAAAASUVORK5CYII=);
+            top: 0px;
+            right: -19px;
+        }
+
+        #uimage {
+            height: 50px;
+            width: 50px;
+            background: url('./u.png')no-repeat center center / cover;
+            border-radius: 50%;
+        }
+
+        nav {
+            background: #009688;
+            color: white;
+            font-weight: 450;
+            font-size: 16px;
+            padding: 0.3rem 0.5rem;
+        }
+
+        .desci {
+            margin-left: 12px;
+        }
+
+        svg#Capa_1 {
+            height: 20px;
+            width: 20px;
+            fill: #fff;
+        }
+
+        .navbody {
+            display: flex;
+        }
+
+        .comment.too {
+            direction: rtl;
+            position: relative;
+        }
+
+        .desci {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            transition: 0.5s;
+        }
+
+        .from {
+            font-size: 12.8px;
+            font-weight: 700;
+            color: #6ab0df;
+            margin: 5px 0px 5px 0px;
+        }
+
+        .text>div {
+            padding: 0;
+            font-size: 11px;
+            word-wrap: break-word;
+        }
+
+        .time_byy {
+            color: #79886d;
+            font-size: 11px;
+            direction: rtl;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #e5ddd5;
+        }
+
+        .area {
+            position: relative;
+        }
+
+        .bgg {
+            background-image: url(./bg.png);
+            opacity: 0.1;
+            position: absolute;
+            height: 100%;
+            width: 100%;
+            top: 0;
+            z-index: -1;
+        }
+
+        input#msg {
+            width: 93%;
+            outline: none;
+            border: none;
+            border-radius: 20px;
+            padding: 1rem;
+            box-shadow: 0px 0px 11px #6ab0df;
+        }
+
+        .comment {
+            margin: 20px;
+        }
+
+        .inputs {
+            position: absolute;
+            bottom: 1%;
+            display: flex;
+            width: 100%;
+            align-items: center;
+            justify-content: center;
+        }
+
+        div#send {
+            background: #009688;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            display: inline-flex;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            margin-left: 20px;
+        }
+
+        svg {
+            fill: white;
+        }
+
+        .txt {
+            flex-basis: 67%;
+        }
+
+        div#talks {
+            height: 70vh;
+            overflow-y: scroll;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px !important;
+            height: 6px !important
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background-color: rgba(0, 0, 0, .2)
+        }
+
+        ::-webkit-scrollbar-track {
+            background: hsla(0, 0%, 100%, .08)
+        }
+
+        div#talks {
+            height: 98%;
+            overflow-y: scroll;
+        }
+
+        .body,
+        body,
+        html,
+        .area {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .conversation {
+            height: 85%;
+        }
+
+        @media (max-width: 767px) {
+            nav {
+                font-size: 13px;
+            }
+
+        }
+    </style>
+</body>
+
+</html>

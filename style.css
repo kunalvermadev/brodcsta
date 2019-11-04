@@ -1,0 +1,136 @@
+:root {
+    --bgg: #2e3035;
+    --pc: #1bb76e;
+}
+
+.flex {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 0.5rem;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    color: white;
+    font-family: sans-serif;
+    font-size: 16px;
+    background: var(--bgg);
+}
+
+.view {
+    border-radius: 4px;
+    margin: 14px;
+    padding: 0.3rem 0.3rem 1rem 0.3rem;
+    text-align: center;
+    box-shadow: 4px 5px 20px 8px #222;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-content: center;
+}
+.appcon {
+    margin-top: 65px;
+}
+
+.ulist {
+    display: flex;
+}
+.app {
+    background: var(--pc);
+    text-align: center;
+    padding: 1rem;
+    letter-spacing: 3px;
+    font-size: 22px;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    height: 20px;
+    z-index: 97;
+}
+
+.ulist>div {
+    background: var(--pc);
+    padding: 0.3rem;
+    border-radius: 50%;
+    margin: 2px;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    line-height: 1px;
+}
+
+.options {
+    display: flex;
+    justify-content: space-between;
+    margin: 0px 5px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.options>div {
+    background: var(--pc);
+    padding: 0.2rem 0.2rem;
+    border-radius: 2px;
+    flex-basis: 25%;
+}
+
+
+.app.footer {
+    top: unset;
+    bottom: 0;
+    z-index: 99;
+}
+
+.app.footer.after:after {
+    content: '';
+    height: 10px;
+    width: 10px;
+    border-radius: 50%;
+    background: #FF5722;
+    box-shadow: 0 0 20px 5px #FF5722;
+    position: absolute;
+    z-index: 9;
+    bottom: 30%;
+    right: 50%;
+    left: 64%;
+}
+
+.app.footer.after.on:after {
+    background: #8BC34A;
+    box-shadow: 0 0 20px 5px #8BC34A;
+}
+
+#nobg {
+    position: fixed;
+    z-index: 98;
+    background: black;
+    height: 100%;
+    width: 100%;
+    top: 0;
+    transition: 0.5s;
+}
+
+.hide {
+    display: none;
+}
+.options>div:first-child{
+    background: #FF5722;
+}
+.options>div:last-child{
+    background: #FF5722;
+}
+.uname {
+    background: var(--pc);
+    width: 25%;
+    align-self: center;
+    border-radius: 4px;
+}
+
+video {
+    border-radius: 6px;
+    margin: 6px;
+    padding: 0;
+}
